@@ -1,0 +1,10 @@
+version: "3"
+services:
+  mongo:
+    image: mongo:4
+    container_name: mongo
+    volumes:
+      - /data/mongo:/data/db
+    command: --auth
+    ports:
+      - "27017:27017"
