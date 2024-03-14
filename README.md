@@ -12,3 +12,14 @@
              待返回returning, 失败failed, 被管理员处理fail_handled)，
             下单者user_order
             }
+
+- 前端需要的功能
+    - 下订单
+    - 查看订单
+    - 开门
+
+- 管理员界面
+    - pause，暂停
+    - open，开门
+    - handle，
+    - recover，恢复

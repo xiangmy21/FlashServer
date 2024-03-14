@@ -24,4 +24,8 @@ router.get("/status", async (req, res) => {
   return res.json(status);
 });
 
+router.get("/open", async (req, res) => {
+  
+});
+
 export default router;
