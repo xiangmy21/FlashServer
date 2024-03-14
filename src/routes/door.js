@@ -1,6 +1,7 @@
 import express from "express";
 import { Orders } from "../middlewares/mongo.js";
 import assert from "assert";
+import { getWebSocket } from "../algorithm/car_ctrl.js";
 
 const router = express.Router();
 
@@ -26,6 +27,10 @@ router.get("/status", async (req, res) => {
 
 router.get("/open", async (req, res) => {
   
+});
+
+router.get("/pause", async (req, res) => {
+    // 暂停小车，
 });
 
 export default router;
