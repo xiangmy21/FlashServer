@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -11,4 +11,4 @@ const database = client.db('FlashServer');
 const Users = database.collection('users');
 const Orders = database.collection('orders');
 
-export { Users, Orders };
+export { Users, Orders, ObjectId };

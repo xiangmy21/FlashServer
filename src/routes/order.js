@@ -1,8 +1,8 @@
 import express from "express";
 import authenticate from "../middlewares/authenticate.js";
-import { Orders } from "../middlewares/mongo.js";
+import { Orders, ObjectId } from "../middlewares/mongo.js";
 import moment from "moment";
-import { ObjectId } from "mongodb";
+import "../algorithm/car_ctrl.js";
 
 const router = express.Router();
 
@@ -13,10 +13,14 @@ router.post("/create", authenticate, async (req, res) => {
     time_start: moment().format("YYYY-MM-DD HH:mm:ss"),
     time_end: "",
     user_order: req.user.username,
-    status: "pending"
+    status: "queueing"
   };
   await Orders.insertOne(order);
-  return res.status(201).send("订单创建成功");
+  res.status(201).send("订单创建成功");
+  // 如果小车空闲，则开始规划路径
+  if (car_ctrl.carStatus == "idle") {
+    car_ctrl.selectGoal();
+  }
 });
 
 router.get("/list/my_order", authenticate, async (req, res) => {

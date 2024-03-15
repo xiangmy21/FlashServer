@@ -1,36 +1,76 @@
 import express from "express";
 import { Orders } from "../middlewares/mongo.js";
 import assert from "assert";
-import { getWebSocket } from "../algorithm/car_ctrl.js";
+import authenticate from "../middlewares/authenticate.js";
+import "../algorithm/car_ctrl.js";
 
 const router = express.Router();
 
 router.get("/status", async (req, res) => {
   // 从数据库中获取门的状态
-  // 如果第i个门有订单是 running/returning/failed, 则状态为 running/returning/failed
-  // 否则，则状态为 pending
-  // 第i个门的队列数为订单中pending的数量 + [running/returning/failed存在]
   const status = [];
   for (let i = 0; i < 3; i++) {
-    const pending = await Orders.countDocuments({ door: i, status: "pending" });
-    const running = await Orders.countDocuments({ door: i, status: "running" });
-    const returning = await Orders.countDocuments({ door: i, status: "returning" });
-    const failed = await Orders.countDocuments({ door: i, status: "failed" });
-    assert(running + returning + failed <= 1, "同时只能有一个订单在进行中")
+    const queueing = await Orders.countDocuments({ door: i, status: "queueing" });
+    const running = await Orders.countDocuments({ door: i, status: { $nin: ["queueing", "finished"] } });
+    assert(running <= 1);
+    let order = null;
+    if (running === 1) {
+      order = await Orders.findOne({ door: i, status: { $nin: ["queueing", "finished"] } });
+    }
     status.push({
-      status: running ? "running" : returning ? "returning" : failed ? "failed" : "pending",
-      queue: pending + (running || returning || failed ? 1 : 0)
+      status: running ? order.status : queueing ? "queueing" : "available",
+      queue: queueing + running
     });
   }
   return res.json(status);
 });
 
-router.get("/open", async (req, res) => {
-  
+router.post("/open", authenticate, async (req, res) => {
+  const { door } = req.body;
+  assert(car_ctrl.carStatus === "waiting");
+  if (car_ctrl.target.order.door !== door || req.user.username !== "admin") {
+    return res.status(403).send("门号错误");
+  }
+  car_ctrl.carStatus = "opened";
+  car_ctrl.ws.send(JSON.stringify({ type: "open", door: door }));
+  if (car_ctrl.target) {
+    Orders.updateOne(
+      { _id: new ObjectId(car_ctrl.target.order._id) },
+      {
+        $set: {
+          status: car_ctrl.target.order.status == "arrive_at_get" ?
+            "success_get" : "finished"
+        }
+      }
+    );
+  }
+  return res.send(`${door}号门已打开`);
 });
 
-router.get("/pause", async (req, res) => {
-    // 暂停小车，
+router.post("/close", async (req, res) => {
+  const { door } = req.body;
+  assert(car_ctrl.carStatus === "opened");
+  car_ctrl.selectGoal();
+  return res.send(`${door}号门已关闭`);
+});
+
+router.post("/pause", authenticate, async (req, res) => {
+  if (req.user.username !== "admin") {
+    return res.status(403).send("无权暂停小车");
+  }
+  car_ctrl.carStatus = "waiting";
+  car_ctrl.target = null;
+  car_ctrl.ws.send(JSON.stringify({ type: "cancel_goal" }));
+  return res.send("小车已暂停");
+});
+
+router.post("/recover", authenticate, async (req, res) => {
+  if (req.user.username !== "admin") {
+    return res.status(403).send("无权恢复小车");
+  }
+  car_ctrl.carStatus = "idle";
+  car_ctrl.selectGoal();
+  return res.send("小车已恢复");
 });
 
 export default router;
