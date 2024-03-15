@@ -51,6 +51,10 @@ router.post("/cancel", authenticate, async (req, res) => {
   if (result.deletedCount === 0) {
     return res.status(404).send("订单不存在");
   }
+  if (car_ctrl.carStatus === "running" && car_ctrl.target.order._id == _id) {
+    car_ctrl.carStatus = "idle";
+    car_ctrl.selectGoal();
+  }
   return res.send("订单取消成功");
 });
 

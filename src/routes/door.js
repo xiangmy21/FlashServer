@@ -1,5 +1,5 @@
 import express from "express";
-import { Orders } from "../middlewares/mongo.js";
+import { Orders, ObjectId } from "../middlewares/mongo.js";
 import assert from "assert";
 import authenticate from "../middlewares/authenticate.js";
 import "../algorithm/car_ctrl.js";
@@ -39,7 +39,7 @@ router.post("/open", authenticate, async (req, res) => {
       {
         $set: {
           status: car_ctrl.target.order.status == "arrive_at_get" ?
-            "success_get" : "finished"
+            "run_to_send" : "finished"
         }
       }
     );

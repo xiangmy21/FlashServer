@@ -11,13 +11,11 @@
         - 队列中queueing
         - 待去起点run_to_get
         - 到达起点arrive_at_get
-        - 成功装货success_get
         - 待去终点run_to_send
         - 到达终点arrive_at_send
         - 已完成finished
-        - 异常状态：待返回returning, 失败failed, 被管理员处理fail_handled)，
-            
-            }
+        - 异常状态：待返回returning, 失败failed, 被管理员处理fail_handled
+        }
 
 - 前端需要的功能
     - 下订单
@@ -27,5 +25,4 @@
 - 管理员界面
     - pause，暂停
     - open，开门
-    - handle，
     - recover，恢复
