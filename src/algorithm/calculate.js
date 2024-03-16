@@ -11,6 +11,10 @@ function calc_distance(carPose, room) {
     Math.abs(carPose.pose.pose.position.x - roomPose.pose.pose.position.x) + 
     Math.abs(carPose.pose.pose.position.y - roomPose.pose.pose.position.y);
 }
+function time_convert(time) {
+  const date = new Date(time);
+  return Math.floor(date.getTime()/1000);
+}
 
 // Function to calculate the goal
 // return type: { order: object, roomPose: {floor: string, pose: object, room_id: string} }
@@ -43,20 +47,20 @@ export async function calculate_goal(carPose) {
   const StartWeight = -50;
   candidateGoals.sort((A, B) => {
     if (startTypes.includes(A.status) && startTypes.includes(B.status)) {
-      return A.time_start - B.time_start;
+      return time_convert(A.time_start) - time_convert(B.time_start);
     }
     else if (endTypes.includes(A.status) && endTypes.includes(B.status)) {
-      const time = A.time_start - B.time_start;
+      const time = time_convert(A.time_start) - time_convert(B.time_start);
       const distance = calc_distance(carPose, A.room_end) - calc_distance(carPose, B.room_end);
       return time*TimeWeight + distance*DistanceWeight;
     }
     else if (startTypes.includes(A.status) && endTypes.includes(B.status)) {
-      const time = A.time_start - B.time_start;
+      const time = time_convert(A.time_start) - time_convert(B.time_start);
       const distance = calc_distance(carPose, A.room_start) - calc_distance(carPose, B.room_end);
       return time*TimeWeight + distance*DistanceWeight + StartWeight;
     }
     else if (endTypes.includes(A.status) && startTypes.includes(B.status)) {
-      const time = A.time_start - B.time_start;
+      const time = time_convert(A.time_start) - time_convert(B.time_start);
       const distance = calc_distance(carPose, A.room_end) - calc_distance(carPose, B.room_start);
       return time*TimeWeight + distance*DistanceWeight - StartWeight;
     }

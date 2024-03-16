@@ -4,6 +4,7 @@ import userRouter from './routes/user.js';
 import ipRouter from './routes/ip.js';
 import orderRouter from './routes/order.js';
 import doorRouter from './routes/door.js';
+import carRouter from './routes/car.js';
 
 const app = express();
 const port = 28888;
@@ -21,6 +22,7 @@ app.use("/user", userRouter);
 app.use("/ip", ipRouter);
 app.use("/order", orderRouter);
 app.use("/door", doorRouter);
+app.use("/car", carRouter);
   
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

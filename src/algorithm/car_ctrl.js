@@ -60,7 +60,21 @@ function setWebSocket(ws_) {
       // 推送到达通知，待实现
       send_notification(target.order.user_order, "arrive");
     }
+    else if (data.type == "error") {
+      console.log("Error: ", data.error);
+      carStatus = "waiting";
+      target = null;
+      // 推送错误通知，待实现
+      send_notification("admin", "error");
+    }
   });
 }
 
-export { carStatus, target, selectGoal, setWebSocket, ws };
+function setCarStatus(status) {
+  carStatus = status;
+}
+function setTarget(target_) {
+  target = target_;
+}
+
+export { carStatus, target, selectGoal, setWebSocket, setCarStatus, setTarget, ws };

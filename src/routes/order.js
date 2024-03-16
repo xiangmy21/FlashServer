@@ -37,7 +37,8 @@ router.get("/list/all", authenticate, async (req, res) => {
   if (req.user.username !== "admin") {
     return res.status(403).send("无权查看所有订单");
   }
-  const orders = await Orders.find().toArray();
+  const options = { sort: { time_start: -1} };
+  const orders = await Orders.find({}, options).toArray();
   return res.json(orders);
 });
 

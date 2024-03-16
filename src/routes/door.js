@@ -1,8 +1,8 @@
 import express from "express";
-import { Orders, ObjectId } from "../middlewares/mongo.js";
+import { Users, Orders, ObjectId } from "../middlewares/mongo.js";
 import assert from "assert";
 import authenticate from "../middlewares/authenticate.js";
-import "../algorithm/car_ctrl.js";
+import * as car_ctrl from "../algorithm/car_ctrl.js";
 
 const router = express.Router();
 
@@ -28,10 +28,24 @@ router.get("/status", async (req, res) => {
 router.post("/open", authenticate, async (req, res) => {
   const { door } = req.body;
   assert(car_ctrl.carStatus === "waiting");
-  if (car_ctrl.target.order.door !== door || req.user.username !== "admin") {
-    return res.status(403).send("门号错误");
+  if (req.user.username !== "admin") {
+    if (!car_ctrl.target) {
+      return res.status(403).send("没有正在进行中的订单，无法开门");
+    }
+    if (car_ctrl.target.order.door !== door) {
+      return res.status(403).send("门号错误，当前进行的是" + car_ctrl.target.order.door + "号门的订单");
+    }
+    let user_allowed = [car_ctrl.target.order.user_order];
+    const user_in_room = await Users.find(
+      { room_id: car_ctrl.target.roomPose.room_id },
+      { projection: { username: 1 } }
+    ).toArray();
+    user_allowed = user_allowed.concat(user_in_room.map(user => user.username));
+    if (!user_allowed.includes(req.user.username)) {
+      return res.status(403).send("非下单用户且非房间用户，无权开启此门");
+    }
   }
-  car_ctrl.carStatus = "opened";
+  car_ctrl.setCarStatus("opened");
   car_ctrl.ws.send(JSON.stringify({ type: "open", door: door }));
   if (car_ctrl.target) {
     Orders.updateOne(
@@ -52,25 +66,6 @@ router.post("/close", async (req, res) => {
   assert(car_ctrl.carStatus === "opened");
   car_ctrl.selectGoal();
   return res.send(`${door}号门已关闭`);
-});
-
-router.post("/pause", authenticate, async (req, res) => {
-  if (req.user.username !== "admin") {
-    return res.status(403).send("无权暂停小车");
-  }
-  car_ctrl.carStatus = "waiting";
-  car_ctrl.target = null;
-  car_ctrl.ws.send(JSON.stringify({ type: "cancel_goal" }));
-  return res.send("小车已暂停");
-});
-
-router.post("/recover", authenticate, async (req, res) => {
-  if (req.user.username !== "admin") {
-    return res.status(403).send("无权恢复小车");
-  }
-  car_ctrl.carStatus = "idle";
-  car_ctrl.selectGoal();
-  return res.send("小车已恢复");
 });
 
 export default router;
