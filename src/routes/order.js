@@ -49,20 +49,25 @@ router.get("/list/all", authenticate, async (req, res) => {
 });
 
 router.post("/cancel", authenticate, async (req, res) => {
-  const { _id } = req.body;
-  const order = await Orders.findOne({ _id: new ObjectId(_id) });
-  if (order.user_order !== req.user.username && req.user.username !== "admin") {
-    return res.status(403).send("无权取消订单");
+  try {
+    const { _id } = req.body;
+    const order = await Orders.findOne({ _id: new ObjectId(_id) });
+    if (order.user_order !== req.user.username && req.user.username !== "admin") {
+      return res.status(403).send("无权取消订单");
+    }
+    const result = await Orders.deleteOne({ _id: new ObjectId(_id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).send("订单不存在");
+    }
+    if (car_ctrl.carStatus === "running" && car_ctrl.target.order._id == _id) {
+      car_ctrl.carStatus = "idle";
+      car_ctrl.selectGoal();
+    }
+    return res.send("订单取消成功");
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
   }
-  const result = await Orders.deleteOne({ _id: new ObjectId(_id) });
-  if (result.deletedCount === 0) {
-    return res.status(404).send("订单不存在");
-  }
-  if (car_ctrl.carStatus === "running" && car_ctrl.target.order._id == _id) {
-    car_ctrl.carStatus = "idle";
-    car_ctrl.selectGoal();
-  }
-  return res.send("订单取消成功");
 });
 
 export default router;
