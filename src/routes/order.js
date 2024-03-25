@@ -7,20 +7,25 @@ import * as car_ctrl from "../algorithm/car_ctrl.js";
 const router = express.Router();
 
 router.post("/create", authenticate, async (req, res) => {
-  const { room_start, room_end, door } = req.body;
-  const order = {
-    room_start, room_end, door,
-    time_order: moment().format("YYYY-MM-DD HH:mm:ss"),
-    time_start: "",
-    time_end: "",
-    user_order: req.user.username,
-    status: "queueing"
-  };
-  await Orders.insertOne(order);
-  res.status(201).send("订单创建成功");
-  // 如果小车空闲，则开始规划路径
-  if (car_ctrl.carStatus == "idle") {
-    car_ctrl.selectGoal();
+  try {
+    const { room_start, room_end, door } = req.body;
+    const order = {
+      room_start, room_end, door,
+      time_order: moment().format("YYYY-MM-DD HH:mm:ss"),
+      time_start: "",
+      time_end: "",
+      user_order: req.user.username,
+      status: "queueing"
+    };
+    await Orders.insertOne(order);
+    res.status(201).send("订单创建成功");
+    // 如果小车空闲，则开始规划路径
+    if (car_ctrl.carStatus == "idle") {
+      car_ctrl.selectGoal();
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
   }
 });
 
