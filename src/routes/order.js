@@ -2,7 +2,7 @@ import express from "express";
 import authenticate from "../middlewares/authenticate.js";
 import { Orders, ObjectId } from "../middlewares/mongo.js";
 import moment from "moment";
-import "../algorithm/car_ctrl.js";
+import * as car_ctrl from "../algorithm/car_ctrl.js";
 
 const router = express.Router();
 
