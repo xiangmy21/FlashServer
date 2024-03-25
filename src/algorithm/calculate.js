@@ -22,7 +22,7 @@ const runningTypes = ["run_to_get", "arrive_at_get", "run_to_send"];
 const startTypes = ["queueing", "run_to_get"];
 const endTypes = ["arrive_at_get", "run_to_send"];
 export async function calculate_goal(carPose) {
-  candidateGoals = [];
+  let candidateGoals = [];
   for ( let i = 0; i < 3; i++) {
     const running = await Orders.findOne({ door: i, status: { $in: runningTypes } });
     if (running) {
