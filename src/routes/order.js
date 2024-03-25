@@ -7,10 +7,11 @@ import "../algorithm/car_ctrl.js";
 const router = express.Router();
 
 router.post("/create", authenticate, async (req, res) => {
-  const { room_start, room_end, door, code } = req.body;
+  const { room_start, room_end, door } = req.body;
   const order = {
-    room_start, room_end, door, code,
-    time_start: moment().format("YYYY-MM-DD HH:mm:ss"),
+    room_start, room_end, door,
+    time_order: moment().format("YYYY-MM-DD HH:mm:ss"),
+    time_start: "",
     time_end: "",
     user_order: req.user.username,
     status: "queueing"
